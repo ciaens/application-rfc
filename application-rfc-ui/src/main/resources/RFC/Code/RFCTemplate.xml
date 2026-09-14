@@ -44,26 +44,153 @@
     <guid>b570f500-12af-4eb4-b760-13c0cfb57a3b</guid>
     <class>
       <name>RFC.Code.RFCClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
       <abstract>
+        <contenttype>PureText</contenttype>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <hint>rfc.class.abstract.hint</hint>
         <name>abstract</name>
+        <number>4</number>
+        <picker>0</picker>
+        <prettyName>Abstract</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
       </abstract>
       <additionalAuthors>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <hint>rfc.class.additionalAuthors.hint</hint>
+        <multiSelect>1</multiSelect>
         <name>additionalAuthors</name>
+        <number>7</number>
+        <picker>1</picker>
+        <prettyName>Additional authors</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|,</separators>
+        <size>6</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <usesList>1</usesList>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
       </additionalAuthors>
       <category>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>informational</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <hint>rfc.class.category.hint</hint>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
         <name>category</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>Category</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|,</separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>informational=Informational|experimental=Experimental|bcp=Best current practice</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </category>
       <content>
+        <customDisplay>{{include reference="AppWithinMinutes.Content"/}}</customDisplay>
+        <disabled>0</disabled>
+        <hint/>
         <name>content</name>
+        <number>5</number>
+        <prettyName>Content</prettyName>
+        <script/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.ComputedFieldClass</classType>
       </content>
       <obsoletes>
+        <cache>0</cache>
+        <classname>RFC.Code.RFCClass</classname>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <hint>rfc.class.obsoletes.hint</hint>
+        <idField/>
+        <multiSelect>1</multiSelect>
         <name>obsoletes</name>
+        <number>6</number>
+        <picker>1</picker>
+        <prettyName>Obsoletes</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators>|,</separators>
+        <size>1</size>
+        <sort>none</sort>
+        <sql/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <valueField/>
+        <classType>com.xpn.xwiki.objects.classes.PageClass</classType>
       </obsoletes>
       <rfcTitle>
+        <customDisplay>{{include reference="AppWithinMinutes.Title"/}}</customDisplay>
+        <disabled>0</disabled>
+        <hint/>
         <name>rfcTitle</name>
+        <number>1</number>
+        <prettyName>Title</prettyName>
+        <script/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.ComputedFieldClass</classType>
       </rfcTitle>
       <status>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>draft</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <hint>rfc.class.status.hint</hint>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
         <name>status</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>Status</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|,</separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>draft=Draft|final=Final</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </status>
     </class>
     <property>
