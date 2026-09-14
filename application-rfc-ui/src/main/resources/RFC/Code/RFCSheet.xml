@@ -61,15 +61,73 @@
 #end
 
 #**
- * Displays links to the given RFC pages, separated by commas.
+ * Outputs HTML that may contain user-controlled text (titles, user names) in a wiki syntax context. The HTML goes
+ * through a non-wiki HTML macro and the macro syntax markers are neutralized, exactly as the platform does for the
+ * output of $doc.display(), so that a title containing macro syntax is displayed and never executed. (Do not write
+ * the velocity macro's own opening marker anywhere in this page, even in a comment: the wiki parser would take it for
+ * a nested macro and swallow the whole page.)
+ *
+ * @param $html the HTML to output, already escaped for HTML
+ *#
+#macro (displaySafeHTML $html)
+{{html clean="false" wiki="false"}}$html.replace('{{', '&amp;#123;&amp;#123;'){{/html}}##
+#end
+
+#**
+ * Displays a read-only definition list entry.
+ *
+ * @param $labelKey the translation key of the label
+ * @param $value the HTML to display as value (may contain user-controlled text)
+ *#
+#macro (displayRFCEntry $labelKey $value)
+  &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render($labelKey))&lt;/label&gt;&lt;/dt&gt;
+  &lt;dd&gt;#displaySafeHTML($value)&lt;/dd&gt;
+#end
+
+#**
+ * Displays links to the given RFC pages, separated by commas. The label of a link is "RFC 42: title" when the RFC has
+ * a number and the title otherwise.
  *
  * @param $references the document references to link to
  *#
 #macro (displayRFCLinks $references)
   #foreach ($reference in $references)
     #set ($linkedDocument = $xwiki.getDocument($reference))
-    &lt;a href="$escapetool.xml($linkedDocument.getURL())"&gt;$escapetool.xml($linkedDocument.plainTitle)&lt;/a&gt;#if ($foreach.hasNext), #end
+    #set ($linkedObject = $linkedDocument.getObject($rfcClassName))
+    #set ($linkedNumber = $NULL)
+    #if ($linkedObject)
+      #set ($linkedNumber = $linkedObject.getValue('number'))
+    #end
+    #if ("$!linkedNumber" != '')
+      #set ($linkLabel = $services.localization.render('rfc.sheet.linkLabel', [$linkedNumber, $linkedDocument.plainTitle]))
+    #else
+      #set ($linkLabel = $linkedDocument.plainTitle)
+    #end
+    &lt;a href="$escapetool.xml($linkedDocument.getURL())"&gt;$escapetool.xml($linkLabel)&lt;/a&gt;#if ($foreach.hasNext), #end
   #end
+#end
+
+#**
+ * Collects the RFC pages, viewable by the current user, that match the given query on the RFC object.
+ *
+ * @param $statement the XWQL statement, with a "rfc" alias for the RFC object
+ * @param $bindings the named values to bind
+ * @param $result the name of the variable that receives the list of document references
+ *#
+#macro (findRFCs $statement $bindings $result)
+  #set ($macro.references = [])
+  #set ($macro.query = $services.query.xwql($statement).addFilter('hidden'))
+  #foreach ($entry in $bindings.entrySet())
+    #set ($discard = $macro.query.bindValue($entry.key, $entry.value))
+  #end
+  #foreach ($item in $macro.query.execute())
+    #set ($macro.reference = $services.model.resolveDocument($item))
+    #if ($services.security.authorization.hasAccess('view', $macro.reference))
+      #set ($discard = $macro.references.add($macro.reference))
+    #end
+  #end
+  #set ($result = $NULL)
+  #setVariable("$result" $macro.references)
 #end
 {{/velocity}}
 
@@ -91,14 +149,35 @@
     'language': $xcontext.locale
   }))
   #if ($editing)
+    ## Propose the next free number to a new RFC (or to an RFC that has none yet). The author sees it and can change it.
+    #if ("$!rfcObject.getValue('number')" == '')
+      ## The pages with the highest numbers (selecting page names keeps the query allowed without programming right).
+      ## Pages the current user cannot view are skipped, so the proposed number may be taken in that rare case; the
+      ## sheet then shows a warning on both pages.
+      #set ($highestNumbered = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where rfc.number is not null order by rfc.number desc").setLimit(10).execute())
+      #set ($nextNumber = 1)
+      #foreach ($highestPageName in $highestNumbered)
+        #set ($highestPage = $xwiki.getDocument($highestPageName))
+        #if ($highestPage &amp;&amp; $highestPage.getObject($rfcClassName))
+          #set ($highestNumber = $highestPage.getObject($rfcClassName).getValue('number'))
+          #if ("$!highestNumber" != '')
+            #set ($nextNumber = $mathtool.add($highestNumber, 1))
+            #break
+          #end
+        #end
+      #end
+      #set ($discard = $rfcObject.set('number', $nextNumber))
+    #end
     {{html wiki="true" clean="false"}}
     &lt;div class="xform"&gt;
       &lt;dl&gt;
         #displayRFCProperty('rfcTitle')
+        #displayRFCProperty('number')
         #displayRFCProperty('category')
         #displayRFCProperty('status')
         #displayRFCProperty('additionalAuthors')
         #displayRFCProperty('obsoletes')
+        #displayRFCProperty('updates')
         #displayRFCProperty('abstract')
         #displayRFCProperty('content')
       &lt;/dl&gt;
@@ -107,33 +186,54 @@
   #else
     ## Lays the metadata out on two columns when the screen is wide enough.
     #set ($discard = $xwiki.ssx.use('RFC.Code.RFCSheet'))
-    ## The RFCs that obsolete this one, limited to those the current user can view.
-    #set ($obsoletedBy = [])
-    #set ($obsoletedByQuery = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where :rfc member of rfc.obsoletes"))
-    #foreach ($result in $obsoletedByQuery.bindValue('rfc', $doc.fullName).addFilter('hidden').execute())
-      #set ($resultReference = $services.model.resolveDocument($result))
-      #if ($services.security.authorization.hasAccess('view', $resultReference))
-        #set ($discard = $obsoletedBy.add($resultReference))
-      #end
+    ## Reverse relations: the RFCs that obsolete or update this one.
+    #findRFCs("from doc.object('RFC.Code.RFCClass') as rfc where :rfc member of rfc.obsoletes" {'rfc': $doc.fullName} $obsoletedBy)
+    #findRFCs("from doc.object('RFC.Code.RFCClass') as rfc where :rfc member of rfc.updates" {'rfc': $doc.fullName} $updatedBy)
+    ## Other RFCs carrying the same number, which happens when two RFCs are created at the same time.
+    #set ($sameNumber = [])
+    #set ($rfcNumber = $rfcObject.getValue('number'))
+    #if ("$!rfcNumber" != '')
+      #findRFCs("from doc.object('RFC.Code.RFCClass') as rfc where rfc.number = :number and doc.fullName &lt;&gt; :self" {'number': $rfcNumber, 'self': $doc.fullName} $sameNumber)
     #end
     #if (!$obsoletedBy.isEmpty())
+      #set ($obsoletedByLinks = "#displayRFCLinks($obsoletedBy)")
       {{warning}}
-        {{translation key="rfc.sheet.obsoletedWarning"/}} {{html clean="false"}}#displayRFCLinks($obsoletedBy){{/html}}
+        {{translation key="rfc.sheet.obsoletedWarning"/}} #displaySafeHTML($obsoletedByLinks)
       {{/warning}}
     #end
+    #if (!$sameNumber.isEmpty())
+      #set ($sameNumberLinks = "#displayRFCLinks($sameNumber)")
+      {{warning}}
+        {{translation key="rfc.sheet.duplicateNumberWarning"/}} #displaySafeHTML($sameNumberLinks)
+      {{/warning}}
+    #end
+    #if (!$updatedBy.isEmpty())
+      #set ($updatedByLinks = "#displayRFCLinks($updatedBy)")
+      {{info}}
+        {{translation key="rfc.sheet.updatedInfo"/}} #displaySafeHTML($updatedByLinks)
+      {{/info}}
+    #end
+    #set ($commentsLabel = $services.localization.render('rfc.sheet.comments', [$doc.comments.size()]))
+    #set ($commentsURL = "${doc.getURL()}${escapetool.h}Comments")
+    #set ($discussionLink = "&lt;a href='$escapetool.xml($commentsURL)'&gt;$escapetool.xml($commentsLabel)&lt;/a&gt;")
     {{html wiki="true" clean="false"}}
     &lt;div class="xform rfc-metadata"&gt;
       &lt;dl&gt;
+        #displayRFCProperty('number')
         #displayRFCProperty('category')
         #displayRFCProperty('status')
-        &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render('rfc.sheet.author'))&lt;/label&gt;&lt;/dt&gt;
-        &lt;dd&gt;#displayUser($doc.creatorReference)&lt;/dd&gt;
+        #set ($authorHTML = "#displayUser($doc.creatorReference)")
+        #displayRFCEntry('rfc.sheet.author' $authorHTML)
         #displayRFCProperty('additionalAuthors')
         #displayRFCProperty('obsoletes')
         #if (!$obsoletedBy.isEmpty())
-          &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render('rfc.sheet.obsoletedBy'))&lt;/label&gt;&lt;/dt&gt;
-          &lt;dd&gt;#displayRFCLinks($obsoletedBy)&lt;/dd&gt;
+          #displayRFCEntry('rfc.sheet.obsoletedBy' $obsoletedByLinks)
         #end
+        #displayRFCProperty('updates')
+        #if (!$updatedBy.isEmpty())
+          #displayRFCEntry('rfc.sheet.updatedBy' $updatedByLinks)
+        #end
+        #displayRFCEntry('rfc.sheet.discussion' $discussionLink)
       &lt;/dl&gt;
     &lt;/div&gt;
     &lt;div class="xform rfc-body"&gt;

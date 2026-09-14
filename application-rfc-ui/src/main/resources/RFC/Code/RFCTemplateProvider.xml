@@ -250,7 +250,7 @@
       <creationRestrictionsAreSuggestions>0</creationRestrictionsAreSuggestions>
     </property>
     <property>
-      <description>A Request for Comments: metadata, abstract and content, which can obsolete earlier RFCs.</description>
+      <description>rfc.templateProvider.description</description>
     </property>
     <property>
       <icon>book</icon>

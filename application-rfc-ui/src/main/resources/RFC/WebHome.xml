@@ -59,16 +59,57 @@
     {{/warning}}
   #end
 #end
+## Filter presets: a request parameter selects the filters applied to the listing below.
+#set ($presets = ['all', 'draft', 'proposed', 'final'])
+#if ($xcontext.userReference)
+  #set ($discard = $presets.add('mine'))
+#end
+#set ($selectedPreset = "$!request.rfcFilter")
+#if (!$presets.contains($selectedPreset))
+  #set ($selectedPreset = 'all')
+#end
+#if ($selectedPreset == 'mine')
+  #set ($listFilters = "doc.creator=$escapetool.url($services.model.serialize($xcontext.userReference, 'local'))")
+#elseif ($selectedPreset != 'all')
+  #set ($listFilters = "status=$selectedPreset")
+#else
+  #set ($listFilters = '')
+#end
+{{html clean="false"}}
+&lt;div class="rfc-filters"&gt;
+  &lt;span class="rfc-filters-label"&gt;$escapetool.xml($services.localization.render('rfc.home.filters.label'))&lt;/span&gt;
+  &lt;div class="btn-group" role="group"&gt;
+    #foreach ($preset in $presets)
+      #set ($presetClass = 'btn btn-default')
+      #if ($preset == $selectedPreset)
+        #set ($presetClass = "$presetClass active")
+      #end
+      &lt;a class="$presetClass" href="$escapetool.xml($doc.getURL('view', "rfcFilter=$preset"))"&gt;$escapetool.xml($services.localization.render("rfc.home.filters.$preset"))&lt;/a&gt;
+    #end
+  &lt;/div&gt;
+&lt;/div&gt;
+{{/html}}
 
 {{liveData
   id="rfc"
   source="liveTable"
   sourceParameters="className=RFC.Code.RFCClass&amp;translationPrefix=rfc.livetable."
-  properties="doc.title,category,status,abstract,obsoletes,doc.creator,doc.date,_actions"
-  sort="doc.date:desc"
+  properties="number,doc.title,category,status,abstract,obsoletes,updates,doc.creator,doc.date,_actions"
+  sort="number:desc"
+#if ($listFilters != '')
+  filters="$listFilters"
+#end
   limit="15"
   showPageSizeDropdown="true"
-/}}
+}}{
+  "meta": {
+    "defaultLayout": "table",
+    "layouts": [
+      {"id": "table"},
+      {"id": "cards", "titleProperty": "doc.title"}
+    ]
+  }
+}{{/liveData}}
 {{/velocity}}</content>
   <object>
     <name>RFC.WebHome</name>
@@ -107,6 +148,128 @@
     </class>
     <property>
       <level>script</level>
+    </property>
+  </object>
+  <object>
+    <name>RFC.WebHome</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>9c8e4d1f-5a0b-4d3c-8f7e-2b4a8c0d9e09</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>/* Filter presets above the list of RFCs. */
+.rfc-filters {
+  display: flex;
+  align-items: center;
+  gap: .75em;
+  flex-wrap: wrap;
+  margin-bottom: 1em;
+}
+.rfc-filters-label {
+  font-weight: bold;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name>RFC home layout</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
     </property>
   </object>
 </xwikidoc>

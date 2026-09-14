@@ -106,6 +106,18 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-query-xwql</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-localization-script</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-icon-script</artifactId>
       <version>${platform.version}</version>
       <scope>runtime</scope>

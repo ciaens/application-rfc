@@ -41,19 +41,30 @@
 ## The pages of version 1.x that version 2.0 replaces.
 #set ($legacyClassName = 'RFCCode.RFCClass')
 #set ($legacyCodePages = ['RFCCode.RFCClass', 'RFCCode.RFCViewSheet', 'RFCCode.RFCEditSheet', 'RFCCode.RFCTemplate',
-  'RFCCode.RFCTranslations', 'RFCCode.RFCLiveTableResults', 'RFCCode.WebHome'])
+  'RFCCode.RFCTranslations', 'RFCCode.RFCLiveTableResults'])
 #set ($legacySamplePage = 'RFC.20150225101420')
 #set ($newClassName = 'RFC.Code.RFCClass')
 ## The properties whose value is copied as is from the old object to the new one.
 #set ($copiedProperties = ['category', 'status', 'abstract', 'additionalAuthors'])
 
 #**
+ * Outputs HTML that may contain user-controlled text (page titles) in a wiki syntax context: the HTML goes through a
+ * non-wiki HTML macro and the macro syntax markers are neutralized, so that a title containing macro syntax cannot
+ * break out of the macro.
+ *
+ * @param $html the HTML to output, already escaped for HTML
+ *#
+#macro (displaySafeHTML $html)
+{{html clean="false" wiki="false"}}$html.replace('{{', '&amp;#123;&amp;#123;'){{/html}}##
+#end
+
+#**
  * @return the pages that still hold an object of the old class, except the code pages of version 1.x
  *#
 #macro (getLegacyPages $result)
-  #set ($legacyPagesQuery = $services.query.xwql("from doc.object('RFCCode.RFCClass') as rfc where doc.space &lt;&gt; 'RFCCode' order by doc.fullName"))
+  #set ($macro.query = $services.query.xwql("from doc.object('RFCCode.RFCClass') as rfc where doc.space &lt;&gt; 'RFCCode' order by doc.fullName"))
   #set ($result = $NULL)
-  #setVariable("$result" $legacyPagesQuery.execute())
+  #setVariable("$result" $macro.query.execute())
 #end
 
 #**
@@ -93,14 +104,56 @@
   #set ($discard = $page.removeObject($legacyObject))
   #set ($discard = $page.save($services.localization.render('rfc.migration.saveComment')))
 #end
+
+#**
+ * @return the RFC pages (oldest first) that have no number, as a list of page names
+ *#
+#macro (getUnnumberedRFCs $result)
+  #set ($macro.pages = [])
+  #set ($macro.query = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where doc.fullName &lt;&gt; :template order by doc.creationDate"))
+  #foreach ($pageName in $macro.query.bindValue('template', 'RFC.Code.RFCTemplate').addFilter('hidden').execute())
+    #set ($macro.page = $xwiki.getDocument($pageName))
+    #if ($macro.page &amp;&amp; $macro.page.getObject($newClassName)
+        &amp;&amp; "$!macro.page.getObject($newClassName).getValue('number')" == '')
+      #set ($discard = $macro.pages.add($pageName))
+    #end
+  #end
+  #set ($result = $NULL)
+  #setVariable("$result" $macro.pages)
+#end
+
+#**
+ * @return the number following the highest RFC number in use
+ *#
+#macro (getNextRFCNumber $result)
+  ## The pages with the highest numbers (selecting page names keeps the query allowed without programming right).
+  #set ($macro.pages = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where rfc.number is not null order by rfc.number desc").setLimit(10).execute())
+  #set ($macro.next = 1)
+  #foreach ($macro.pageName in $macro.pages)
+    #set ($macro.page = $xwiki.getDocument($macro.pageName))
+    #if ($macro.page &amp;&amp; $macro.page.getObject($newClassName))
+      #set ($macro.highest = $macro.page.getObject($newClassName).getValue('number'))
+      #if ("$!macro.highest" != '')
+        #set ($macro.next = $mathtool.add($macro.highest, 1))
+        #break
+      #end
+    #end
+  #end
+  #set ($result = $NULL)
+  #setVariable("$result" $macro.next)
+#end
 {{/velocity}}
 
 {{velocity}}
-#if (!$services.security.authorization.hasAccess('admin', $services.model.resolveSpace('RFC')))
+#set ($wikiReference = $services.model.resolveDocument('XWiki.XWikiPreferences').wikiReference)
+#if (!$services.security.authorization.hasAccess('admin', $wikiReference))
   {{error}}{{translation key="rfc.migration.accessDenied"/}}{{/error}}
 #else
   #set ($isValidPost = $request.method == 'POST' &amp;&amp; $services.csrf.isTokenValid($request.form_token))
   #set ($migrationAction = "$!request.rfcMigrationAction")
+  #if ($request.method == 'POST' &amp;&amp; !$isValidPost)
+    {{error}}{{translation key="rfc.migration.invalidToken"/}}{{/error}}
+  #end
   ##
   ## Step 1: migrate the objects.
   ##
@@ -121,24 +174,60 @@
     #set ($migratedCount = [$migratedPages.size()])
     {{success}}{{translation key="rfc.migration.migrated" scriptParameters="migratedCount"/}}{{/success}}
     #if (!$failedPages.isEmpty())
+      #set ($failedPagesList = "#displayPageList($failedPages)")
       {{error}}
         {{translation key="rfc.migration.failed"/}}
-        {{html clean="false"}}#displayPageList($failedPages){{/html}}
+        #displaySafeHTML($failedPagesList)
       {{/error}}
     #end
   ##
-  ## Step 2: remove the pages of version 1.x.
+  ## Step 2: number the RFCs that have no number.
   ##
-  #elseif ($isValidPost &amp;&amp; $migrationAction == 'cleanup')
-    #foreach ($pageName in $legacyCodePages)
-      #if ($xwiki.exists($pageName))
-        #set ($discard = $xwiki.getDocument($pageName).delete())
+  #elseif ($isValidPost &amp;&amp; $migrationAction == 'number')
+    #getUnnumberedRFCs($pagesToNumber)
+    #getNextRFCNumber($nextNumber)
+    #set ($numberedPages = [])
+    #foreach ($pageName in $pagesToNumber)
+      #set ($page = $xwiki.getDocument($pageName))
+      #if ($services.security.authorization.hasAccess('edit', $page.documentReference))
+        #set ($discard = $page.getObject($newClassName).set('number', $nextNumber))
+        #set ($discard = $page.save($services.localization.render('rfc.migration.numberingComment')))
+        #set ($discard = $numberedPages.add($pageName))
+        #set ($nextNumber = $mathtool.add($nextNumber, 1))
       #end
     #end
-    #if ("$!request.deleteSamplePage" == '1' &amp;&amp; $xwiki.exists($legacySamplePage))
-      #set ($discard = $xwiki.getDocument($legacySamplePage).delete())
+    #set ($numberedCount = [$numberedPages.size()])
+    {{success}}{{translation key="rfc.migration.numbered" scriptParameters="numberedCount"/}}{{/success}}
+  ##
+  ## Step 3: remove the pages of version 1.x.
+  ##
+  #elseif ($isValidPost &amp;&amp; $migrationAction == 'cleanup')
+    #set ($pagesToDelete = [])
+    #foreach ($pageName in $legacyCodePages)
+      #set ($discard = $pagesToDelete.add($pageName))
     #end
-    {{success}}{{translation key="rfc.migration.cleanedUp"/}}{{/success}}
+    #if ("$!request.deleteSamplePage" == '1')
+      #set ($discard = $pagesToDelete.add($legacySamplePage))
+    #end
+    #set ($notDeletedPages = [])
+    #foreach ($pageName in $pagesToDelete)
+      #if ($xwiki.exists($pageName))
+        #if ($services.security.authorization.hasAccess('delete', $services.model.resolveDocument($pageName)))
+          #set ($discard = $xwiki.getDocument($pageName).delete())
+        #else
+          #set ($discard = $notDeletedPages.add($pageName))
+        #end
+      #end
+    #end
+    #if ($notDeletedPages.isEmpty())
+      {{success}}{{translation key="rfc.migration.cleanedUp"/}}{{/success}}
+    #else
+      #set ($notDeletedList = "#displayPageList($notDeletedPages)")
+      {{error}}
+        {{translation key="rfc.migration.cleanup.failed"/}}
+        #displaySafeHTML($notDeletedList)
+      {{/error}}
+    #end
   #end
   ##
   ## Current state.
@@ -159,8 +248,10 @@
   #if ($pendingPages.isEmpty())
     {{info}}{{translation key="rfc.migration.pages.none"/}}{{/info}}
   #else
+    #set ($pendingPagesList = "#displayPageList($pendingPages)")
+    #displaySafeHTML($pendingPagesList)
+
     {{html clean="false"}}
-    #displayPageList($pendingPages)
     &lt;form method="post" action="$escapetool.xml($doc.getURL())"&gt;
       &lt;input type="hidden" name="form_token" value="$escapetool.xml($services.csrf.token)" /&gt;
       &lt;input type="hidden" name="rfcMigrationAction" value="migrate" /&gt;
@@ -171,6 +262,24 @@
     {{info}}{{translation key="rfc.migration.rename.hint"/}}{{/info}}
   #end
 
+  == {{translation key="rfc.migration.numbering.heading"/}} ==
+
+  #getUnnumberedRFCs($unnumberedPages)
+  #if ($unnumberedPages.isEmpty())
+    {{info}}{{translation key="rfc.migration.numbering.none"/}}{{/info}}
+  #else
+    #set ($unnumberedPagesList = "#displayPageList($unnumberedPages)")
+    #displaySafeHTML($unnumberedPagesList)
+
+    {{html clean="false"}}
+    &lt;form method="post" action="$escapetool.xml($doc.getURL())"&gt;
+      &lt;input type="hidden" name="form_token" value="$escapetool.xml($services.csrf.token)" /&gt;
+      &lt;input type="hidden" name="rfcMigrationAction" value="number" /&gt;
+      &lt;button type="submit" class="btn btn-primary"&gt;$escapetool.xml($services.localization.render('rfc.migration.numbering.assign'))&lt;/button&gt;
+    &lt;/form&gt;
+    {{/html}}
+  #end
+
   == {{translation key="rfc.migration.cleanup.heading"/}} ==
 
   #if ($remainingCodePages.isEmpty() &amp;&amp; !$hasSamplePage)
@@ -179,8 +288,10 @@
     #if (!$pendingPages.isEmpty())
       {{warning}}{{translation key="rfc.migration.cleanup.pending"/}}{{/warning}}
     #end
+    #set ($remainingCodePagesList = "#displayPageList($remainingCodePages)")
+    #displaySafeHTML($remainingCodePagesList)
+
     {{html clean="false"}}
-    #displayPageList($remainingCodePages)
     &lt;form method="post" action="$escapetool.xml($doc.getURL())" class="xform"&gt;
       &lt;input type="hidden" name="form_token" value="$escapetool.xml($services.csrf.token)" /&gt;
       &lt;input type="hidden" name="rfcMigrationAction" value="cleanup" /&gt;

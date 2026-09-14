@@ -39,33 +39,46 @@
   <enforceRequiredRights>true</enforceRequiredRights>
   <content># Class fields
 RFC.Code.RFCClass_rfcTitle=Title
+RFC.Code.RFCClass_number=Number
 RFC.Code.RFCClass_category=Category
 RFC.Code.RFCClass_category_informational=Informational
 RFC.Code.RFCClass_category_experimental=Experimental
 RFC.Code.RFCClass_category_bcp=Best current practice
 RFC.Code.RFCClass_status=Status
 RFC.Code.RFCClass_status_draft=Draft
+RFC.Code.RFCClass_status_proposed=Proposed
 RFC.Code.RFCClass_status_final=Final
+RFC.Code.RFCClass_status_rejected=Rejected
 RFC.Code.RFCClass_abstract=Abstract
 RFC.Code.RFCClass_content=Content
 RFC.Code.RFCClass_obsoletes=Obsoletes
+RFC.Code.RFCClass_updates=Updates
 RFC.Code.RFCClass_additionalAuthors=Additional authors
 
 # Class field hints (shown in edit mode)
+rfc.class.number.hint=Sequential number of the RFC, proposed automatically when the RFC is created.
 rfc.class.category.hint=Informational describes a practice or a system, experimental proposes a new way of doing things, best current practice describes rules and procedures that are widely adopted.
-rfc.class.status.hint=Draft while the RFC is being written, final once it can be relied on.
+rfc.class.status.hint=Draft while the RFC is being written, proposed once it is submitted for comments, final once it is accepted, rejected otherwise.
 rfc.class.abstract.hint=A short plain-text summary of the RFC, shown in the list of RFCs.
 rfc.class.obsoletes.hint=The earlier RFCs that this one replaces.
+rfc.class.updates.hint=The earlier RFCs that this one amends without replacing them.
 rfc.class.additionalAuthors.hint=The authors of the RFC besides the person who created the page.
 
 # Home page
 rfc.home.title=RFCs
-rfc.home.description=A Request for Comments (RFC) is a document that describes a practice, a proposal or a piece of information inside your organization, in the spirit of the IETF publications of the same name. Each RFC has a category, a status, an abstract and a content, and can obsolete earlier RFCs, which are then marked as obsoleted.
+rfc.home.description=A Request for Comments (RFC) is a document that describes a practice, a proposal or a piece of information inside your organization, in the spirit of the IETF publications of the same name.
 rfc.home.create=Create an RFC
 rfc.home.legacyDataWarning=Pages created with version 1.x of the RFC application were found. They must be migrated before they appear in the list below.
 rfc.home.legacyDataLink=Open the migration page
+rfc.home.filters.label=Show
+rfc.home.filters.all=All RFCs
+rfc.home.filters.draft=Drafts
+rfc.home.filters.proposed=Proposed
+rfc.home.filters.final=Final
+rfc.home.filters.mine=Mine
 
 # Live Data columns
+rfc.livetable.number=Number
 rfc.livetable.doc.title=Title
 rfc.livetable.doc.creator=Author
 rfc.livetable.doc.date=Last update
@@ -73,6 +86,7 @@ rfc.livetable.category=Category
 rfc.livetable.status=Status
 rfc.livetable.abstract=Abstract
 rfc.livetable.obsoletes=Obsoletes
+rfc.livetable.updates=Updates
 rfc.livetable._actions=Actions
 rfc.livetable._actions.edit=Edit
 rfc.livetable._actions.delete=Delete
@@ -84,9 +98,16 @@ rfc.sheet.noObject=This page has no RFC object, so the RFC sheet cannot display 
 rfc.sheet.author=Author
 rfc.sheet.obsoletedBy=Obsoleted by
 rfc.sheet.obsoletedWarning=This RFC has been obsoleted by:
+rfc.sheet.updatedBy=Updated by
+rfc.sheet.updatedInfo=This RFC has been updated by:
+rfc.sheet.duplicateNumberWarning=Another RFC has the same number:
+rfc.sheet.linkLabel=RFC {0,number,#}: {1}
+rfc.sheet.discussion=Discussion
+rfc.sheet.comments={0,choice,0#No comments yet|1#1 comment|1&lt;{0} comments}
 
 # Template provider
 rfc.templateProvider.name=RFC
+rfc.templateProvider.description=A Request for Comments: numbered, with a category, a status, an abstract and a content, which can obsolete or update earlier RFCs.
 
 # Code space
 rfc.code.title=Code
@@ -97,20 +118,27 @@ rfc.panel.label=RFCs
 
 # Migration from version 1.x
 rfc.migration.title=RFC data migration
-rfc.migration.description=Version 1.x of the RFC application stored its data in objects of the RFCCode.RFCClass class. Version 2.0 uses the RFC.Code.RFCClass class. This page converts the existing pages and removes the pages of version 1.x that are no longer needed. Both steps can be run again safely.
-rfc.migration.accessDenied=Only administrators of the RFC space can run the migration.
+rfc.migration.description=Version 1.x of the RFC application stored its data in objects of the RFCCode.RFCClass class. Version 2.0 uses the RFC.Code.RFCClass class. This page converts the existing pages, numbers the RFCs that have no number and removes the pages of version 1.x that are no longer needed. Every step can be run again safely.
+rfc.migration.accessDenied=Only wiki administrators can run the migration.
+rfc.migration.invalidToken=The request was not accepted (invalid form token). Please try again.
 rfc.migration.pages.heading=Pages to migrate
 rfc.migration.pages.none=No page uses the class of version 1.x. There is nothing to migrate.
 rfc.migration.pages.migrate=Migrate the objects of these pages
 rfc.migration.migrated={0} page(s) were migrated.
 rfc.migration.failed=The following pages could not be migrated, because you cannot edit them or they already hold an object of the new class:
 rfc.migration.saveComment=Migrated to version 2.0 of the RFC application
+rfc.migration.numbering.heading=RFCs without a number
+rfc.migration.numbering.none=Every RFC has a number.
+rfc.migration.numbering.assign=Number these RFCs, oldest first
+rfc.migration.numbered={0} RFC(s) were numbered.
+rfc.migration.numberingComment=RFC number assigned by the migration page
 rfc.migration.cleanup.heading=Pages of version 1.x to remove
 rfc.migration.cleanup.none=No page of version 1.x remains. There is nothing to remove.
 rfc.migration.cleanup.pending=Remove these pages only once every page listed above has been migrated.
 rfc.migration.cleanup.samplePage=Also delete the sample RFC page shipped with version 1.x
 rfc.migration.cleanup.remove=Remove the pages of version 1.x
 rfc.migration.cleanedUp=The pages of version 1.x were removed.
+rfc.migration.cleanup.failed=The following pages could not be removed because you are not allowed to delete them:
 rfc.migration.rename.hint=Pages created with version 1.x keep their timestamp-based names. You can rename them from their page menu if you want title-based names.</content>
   <object>
     <name>RFC.Code.RFCTranslations</name>
