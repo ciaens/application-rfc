@@ -105,6 +105,8 @@
     &lt;/div&gt;
     {{/html}}
   #else
+    ## Lays the metadata out on two columns when the screen is wide enough.
+    #set ($discard = $xwiki.ssx.use('RFC.Code.RFCSheet'))
     ## The RFCs that obsolete this one, limited to those the current user can view.
     #set ($obsoletedBy = [])
     #set ($obsoletedByQuery = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where :rfc member of rfc.obsoletes"))
@@ -144,6 +146,141 @@
   #end
 #end
 {{/velocity}}</content>
+  <object>
+    <name>RFC.Code.RFCSheet</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>8b7d3c0e-4f9a-4c2b-9e6d-1a3f7b9c8d08</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>/* Metadata of an RFC: label/value pairs on two columns when the screen is wide enough. The definition list
+   markup is kept as is because in-place editing relies on the dt/dd pairs. */
+.rfc-metadata dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 1.5em;
+  row-gap: .5em;
+  align-items: baseline;
+  margin-bottom: 1.5em;
+}
+.rfc-metadata dl &gt; dt,
+.rfc-metadata dl &gt; dd {
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .rfc-metadata dl {
+    grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+    column-gap: 2em;
+  }
+}
+/* The abstract and the content keep the vertical layout, with a little more room between them. */
+.rfc-body dl &gt; dd {
+  margin-bottom: 1.5em;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name>RFC sheet layout</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
   <object>
     <name>RFC.Code.RFCSheet</name>
     <number>0</number>
