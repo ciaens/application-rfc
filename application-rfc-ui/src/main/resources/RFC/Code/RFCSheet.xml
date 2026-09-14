@@ -1,0 +1,186 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.6" reference="RFC.Code.RFCSheet" locale="">
+  <web>RFC.Code</web>
+  <name>RFCSheet</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>RFC.Code.RFCClass</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
+  <content>{{velocity output="false"}}
+#set ($rfcClassName = 'RFC.Code.RFCClass')
+
+#**
+ * Displays one property of the RFC object as a definition list entry. In view mode the entry can be edited in place.
+ *
+ * @param $propertyName the name of the property to display
+ *#
+#macro (displayRFCProperty $propertyName)
+  &lt;dt#if (!$editing &amp;&amp; $hasEdit) class="editableProperty"
+      data-property="$escapetool.xml($services.model.serialize($rfcObject.getPropertyReference($propertyName)))"
+      data-property-type="object"#end&gt;
+    &lt;label#if ($editing) for="$escapetool.xml("${rfcClassName}_${rfcObject.number}_${propertyName}")"#end&gt;
+      $escapetool.xml($doc.displayPrettyName($propertyName, false, false))
+    &lt;/label&gt;
+    #set ($hint = $rfcClass.get($propertyName).hint)
+    #if ($editing &amp;&amp; "$!hint" != '')
+      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render($hint))&lt;/span&gt;
+    #end
+  &lt;/dt&gt;
+  &lt;dd&gt;$doc.display($propertyName)&lt;/dd&gt;
+#end
+
+#**
+ * Displays links to the given RFC pages, separated by commas.
+ *
+ * @param $references the document references to link to
+ *#
+#macro (displayRFCLinks $references)
+  #foreach ($reference in $references)
+    #set ($linkedDocument = $xwiki.getDocument($reference))
+    &lt;a href="$escapetool.xml($linkedDocument.getURL())"&gt;$escapetool.xml($linkedDocument.plainTitle)&lt;/a&gt;#if ($foreach.hasNext), #end
+  #end
+#end
+{{/velocity}}
+
+{{velocity}}
+#set ($rfcObject = $doc.getObject($rfcClassName))
+#if (!$rfcObject)
+  #if ($doc.fullName == 'RFC.Code.RFCSheet')
+    {{info}}{{translation key="rfc.sheet.description"/}}{{/info}}
+  #else
+    {{warning}}{{translation key="rfc.sheet.noObject"/}}{{/warning}}
+  #end
+#else
+  #set ($rfcClass = $rfcObject.xWikiClass)
+  #set ($discard = $doc.use($rfcObject))
+  #set ($editing = $xcontext.action == 'edit')
+  ## Needed for in-place editing.
+  #set ($discard = $xwiki.jsfx.use('uicomponents/edit/editableProperty.js', {
+    'forceSkinAction': true,
+    'language': $xcontext.locale
+  }))
+  #if ($editing)
+    {{html wiki="true" clean="false"}}
+    &lt;div class="xform"&gt;
+      &lt;dl&gt;
+        #displayRFCProperty('rfcTitle')
+        #displayRFCProperty('category')
+        #displayRFCProperty('status')
+        #displayRFCProperty('additionalAuthors')
+        #displayRFCProperty('obsoletes')
+        #displayRFCProperty('abstract')
+        #displayRFCProperty('content')
+      &lt;/dl&gt;
+    &lt;/div&gt;
+    {{/html}}
+  #else
+    ## The RFCs that obsolete this one, limited to those the current user can view.
+    #set ($obsoletedBy = [])
+    #set ($obsoletedByQuery = $services.query.xwql("from doc.object('RFC.Code.RFCClass') as rfc where :rfc member of rfc.obsoletes"))
+    #foreach ($result in $obsoletedByQuery.bindValue('rfc', $doc.fullName).addFilter('hidden').execute())
+      #set ($resultReference = $services.model.resolveDocument($result))
+      #if ($services.security.authorization.hasAccess('view', $resultReference))
+        #set ($discard = $obsoletedBy.add($resultReference))
+      #end
+    #end
+    #if (!$obsoletedBy.isEmpty())
+      {{warning}}
+        {{translation key="rfc.sheet.obsoletedWarning"/}} {{html clean="false"}}#displayRFCLinks($obsoletedBy){{/html}}
+      {{/warning}}
+    #end
+    {{html wiki="true" clean="false"}}
+    &lt;div class="xform rfc-metadata"&gt;
+      &lt;dl&gt;
+        #displayRFCProperty('category')
+        #displayRFCProperty('status')
+        &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render('rfc.sheet.author'))&lt;/label&gt;&lt;/dt&gt;
+        &lt;dd&gt;#displayUser($doc.creatorReference)&lt;/dd&gt;
+        #displayRFCProperty('additionalAuthors')
+        #displayRFCProperty('obsoletes')
+        #if (!$obsoletedBy.isEmpty())
+          &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render('rfc.sheet.obsoletedBy'))&lt;/label&gt;&lt;/dt&gt;
+          &lt;dd&gt;#displayRFCLinks($obsoletedBy)&lt;/dd&gt;
+        #end
+      &lt;/dl&gt;
+    &lt;/div&gt;
+    &lt;div class="xform rfc-body"&gt;
+      &lt;dl&gt;
+        #displayRFCProperty('abstract')
+        #displayRFCProperty('content')
+      &lt;/dl&gt;
+    &lt;/div&gt;
+    {{/html}}
+  #end
+#end
+{{/velocity}}</content>
+  <object>
+    <name>RFC.Code.RFCSheet</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>2b1d7c4e-8f3a-4c6b-9e0d-5a7f1c3b2e02</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>script</level>
+    </property>
+  </object>
+</xwikidoc>
