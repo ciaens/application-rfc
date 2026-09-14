@@ -125,12 +125,17 @@ rfc.migration.pages.heading=Pages to migrate
 rfc.migration.pages.none=No page uses the class of version 1.x. There is nothing to migrate.
 rfc.migration.pages.migrate=Migrate the objects of these pages
 rfc.migration.migrated={0} page(s) were migrated.
-rfc.migration.failed=The following pages could not be migrated, because you cannot edit them or they already hold an object of the new class:
+rfc.migration.failed=The following pages could not be migrated:
+rfc.migration.failed.rightsHint=A page that declares required rights above "script" cannot be saved from this page. Migrate or number it by hand, or lower its declared rights first.
+rfc.migration.reason.notEditable=you are not allowed to edit it
+rfc.migration.reason.alreadyMigrated=it already holds an object of the new class
+rfc.migration.reason.notDeletable=you are not allowed to delete it
 rfc.migration.saveComment=Migrated to version 2.0 of the RFC application
 rfc.migration.numbering.heading=RFCs without a number
 rfc.migration.numbering.none=Every RFC has a number.
 rfc.migration.numbering.assign=Number these RFCs, oldest first
 rfc.migration.numbered={0} RFC(s) were numbered.
+rfc.migration.numbering.failed=The following RFCs could not be numbered:
 rfc.migration.numberingComment=RFC number assigned by the migration page
 rfc.migration.cleanup.heading=Pages of version 1.x to remove
 rfc.migration.cleanup.none=No page of version 1.x remains. There is nothing to remove.
@@ -138,7 +143,7 @@ rfc.migration.cleanup.pending=Remove these pages only once every page listed abo
 rfc.migration.cleanup.samplePage=Also delete the sample RFC page shipped with version 1.x
 rfc.migration.cleanup.remove=Remove the pages of version 1.x
 rfc.migration.cleanedUp=The pages of version 1.x were removed.
-rfc.migration.cleanup.failed=The following pages could not be removed because you are not allowed to delete them:
+rfc.migration.cleanup.failed=The following pages could not be removed:
 rfc.migration.rename.hint=Pages created with version 1.x keep their timestamp-based names. You can rename them from their page menu if you want title-based names.</content>
   <object>
     <name>RFC.Code.RFCTranslations</name>

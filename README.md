@@ -15,6 +15,10 @@ This application provides a way for authoring documents that share some common t
 * Translations: N/A
 * Continuous Integration Status (TODO): [![Build Status](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/badge/icon)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/)
 
+## Security note
+
+RFC pages enforce XWiki's required rights: script macros in the content or the title of an RFC run only if an administrator declares the corresponding required right on that page. Pages created from the RFC template inherit this setting, and the migration page applies it to the pages it converts from version 1.x.
+
 ## Building
 
 ```
