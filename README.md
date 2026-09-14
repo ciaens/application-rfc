@@ -7,13 +7,13 @@ This application provides a way for authoring documents that share some common t
 * Project Lead: Clément Christiaens
 * Original author: [Fabio Mancinelli](https://www.xwiki.org/xwiki/bin/view/XWiki/fmancinelli)
 * [Documentation & Downloads](https://extensions.xwiki.org/xwiki/bin/view/Extension/RFC%20Application)
-* [Issue Tracker](https://jira.xwiki.org/browse/RFC)
-* Communication: [Forum](https://forum.xwiki.org/), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
+* [Issue Tracker (TODO)](https://jira.xwiki.org/browse/RFC)
+* Communication (TODO): [Forum](https://forum.xwiki.org/), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
 * [Development Practices](https://dev.xwiki.org)
 * Minimal XWiki version supported: XWiki 17.10
 * License: LGPL 2.1
 * Translations: N/A
-* Continuous Integration Status: [![Build Status](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/badge/icon)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/)
+* Continuous Integration Status (TODO): [![Build Status](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/badge/icon)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/)
 
 ## Building
 
@@ -26,7 +26,3 @@ The wiki pages live in `application-rfc-ui/src/main/resources`. After editing on
 ```
 mvn xar:format -pl application-rfc-ui
 ```
-
-## Roadmap
-
-The modernization plan for version 2.0 (findings, target design, phases) is in [UPDATE-PLAN.md](UPDATE-PLAN.md).
