@@ -24,9 +24,6 @@
 // @Library("XWiki@<branch, tag, sha1>") _
 // See https://github.com/jenkinsci/workflow-cps-global-lib-plugin for details.
 
-// There is no Java code in this project (XAR only), so Sonar/JaCoCo are not enabled. The Docker-based functional tests
-// (added in a dedicated test module) run through the "integration-tests" and "docker" profiles.
+// The standard pipeline (build, quality checks, integration and Docker tests) needs no customization here.
 xwikiModule {
-  goals = 'clean deploy'
-  profiles = 'quality,integration-tests,docker'
 }

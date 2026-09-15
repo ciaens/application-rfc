@@ -33,7 +33,9 @@
   <description>Author documents that share common traits with IETF's Request for Comments (RFC): metadata, abstract, content, and "obsoletes" / "superseded by" relations between them.</description>
   <url>https://extensions.xwiki.org/xwiki/bin/view/Extension/RFC%20Application</url>
   <properties>
-    <xwiki.extension.name>RFC Application</xwiki.extension.name>
+    <!-- Id of the extension up to version 1.2 (a single module), so that the Extension Manager upgrades it instead of
+         installing both. -->
+    <xwiki.extension.features>org.xwiki.contrib:application-rfc</xwiki.extension.features>
     <xwiki.extension.category>application</xwiki.extension.category>
   </properties>
   <dependencies>
@@ -201,10 +203,17 @@
         <groupId>org.xwiki.commons</groupId>
         <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
         <configuration>
-          <!-- Pages that users see and may edit; everything else is technical and hidden. -->
+          <!-- The home page is content that users see; everything else is technical and hidden. -->
           <contentPages>
             <contentPage>.*/RFC/WebHome\.xml</contentPage>
           </contentPages>
+          <!-- Users may customize the home page: marking it lets them edit it without the extension-page warning. -->
+          <entries>
+            <entry>
+              <document>RFC.WebHome</document>
+              <type>customizable</type>
+            </entry>
+          </entries>
         </configuration>
       </plugin>
     </plugins>

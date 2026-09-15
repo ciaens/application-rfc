@@ -10,7 +10,7 @@ This application provides a way for authoring documents that share some common t
 * [Issue Tracker (TODO)](https://jira.xwiki.org/browse/RFC)
 * Communication (TODO): [Forum](https://forum.xwiki.org/), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
 * [Development Practices](https://dev.xwiki.org)
-* Minimal XWiki version supported: XWiki 17.10.9
+* Minimal XWiki version supported: XWiki 17.10.0
 * License: LGPL 2.1
 * Translations: N/A
 * Continuous Integration Status (TODO): [![Build Status](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/badge/icon)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-rfc/job/master/)
